@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Translation Terminal</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Full-page CRT overlays (pointer-events: none) -->
+  <div class="overlay scanlines" aria-hidden="true"></div>
+  <div class="overlay vignette" aria-hidden="true"></div>
+  <!-- Hacker rain backdrop (canvas, animated) -->
+  <canvas id="hack-rain" aria-hidden="true"></canvas>
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="brand" id="brand" role="link" tabindex="0" title="Back to main page" aria-label="Back to main page">
+      <svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+        <path d="M6 9l6 7-6 7" />
+        <path d="M16 23h10" />
+      </svg>
+      <div class="brand-text">
+        <h1 class="brand-title">TRANSLATION TERMINAL</h1>
+        <div class="status-line">
+          <span class="led" id="status-led" aria-hidden="true"></span>
+          <span class="status-text" id="status-text">READY</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats" id="stats" aria-label="Global statistics">
+      <span class="stat"><b id="stat-rows">0</b> ROWS</span>
+      <span class="stat-sep" aria-hidden="true"></span>
+      <span class="stat"><b id="stat-sheets">0</b> SHEETS</span>
+      <span class="stat-sep" aria-hidden="true"></span>
+      <span class="stat"><b id="stat-edited">0</b> EDITED</span>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="search-box">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.5" />
+          <path d="M10.5 10.5L14 14" />
+        </svg>
+        <input id="search-input" type="text" placeholder="SEARCH" aria-label="Search rows (Cmd/Ctrl+F or /)" autocomplete="off" spellcheck="false">
+        <span class="search-count" id="search-count" aria-hidden="true"></span>
+      </div>
+      <button id="btn-edited-only" class="btn btn-toggle" aria-pressed="false">EDITED ONLY</button>
+      <button id="btn-clear-edits" class="btn btn-ghost" disabled>CLEAR EDITS</button>
+      <button id="btn-clear-data" class="btn btn-ghost" disabled>CLEAR DATA</button>
+      <button id="btn-repo" class="btn btn-ghost" aria-expanded="false">REPO</button>
+      <button id="btn-import" class="btn btn-primary">IMPORT</button>
+    </div>
+  </header>
+
+  <!-- ============ REPO PATH PANEL (collapsible) ============ -->
+  <section class="repo-panel" id="repo-panel" hidden>
+    <label class="repo-label" for="repo-input">REPO PATH</label>
+    <input id="repo-input" type="text" placeholder="/path/to/your-app" autocomplete="off" spellcheck="false">
+    <button id="btn-repo-browse" class="btn btn-ghost" type="button" aria-label="Browse for repository folder">BROWSE…</button>
+    <button id="btn-repo-load" class="btn btn-primary">LOAD FROM REPO</button>
+    <p class="repo-error" id="repo-error" role="alert" hidden></p>
+  </section>
+
+  <!-- ============ SELECTION ACTION BAR ============ -->
+  <section class="selection-bar" id="selection-bar" hidden>
+    <span class="selection-count" id="selection-count">0 rows selected</span>
+    <button id="btn-copy-selection" class="btn btn-primary">COPY ROW(S) AS TABLE</button>
+    <button id="btn-clear-selection" class="icon-btn" aria-label="Clear selection">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" /></svg>
+    </button>
+  </section>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <!-- Empty state hero -->
+    <section class="empty-state" id="empty-state">
+      <div class="hero-panel">
+        <span class="corner tl" aria-hidden="true"></span>
+        <span class="corner tr" aria-hidden="true"></span>
+        <span class="corner bl" aria-hidden="true"></span>
+        <span class="corner br" aria-hidden="true"></span>
+        <div class="hero-kicker">// I18N TRANSLATION WORKBENCH</div>
+        <h2 class="hero-title">TRANSLATION<br>TERMINAL</h2>
+        <p class="hero-desc">Paste TSV from the export script, fix the blanks, copy per-sheet tables into the online sheet.</p>
+        <ol class="hero-steps">
+          <li><span class="step-num">01</span> Paste TSV or load from repo</li>
+          <li><span class="step-num">02</span> Edit missing translations inline</li>
+          <li><span class="step-num">03</span> Copy sheet tables, paste with Cmd+V</li>
+        </ol>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" data-action="import">PASTE TSV</button>
+          <button class="btn btn-ghost btn-lg" data-action="repo">LOAD FROM REPO</button>
+          <button class="btn btn-ghost btn-lg" data-action="demo">TRY DEMO DATA</button>
+        </div>
+        <div class="grid-floor" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- Spreadsheet workspace -->
+    <section class="workspace" id="workspace" hidden>
+      <div class="grid-wrap">
+        <table class="grid" id="grid" aria-label="Translation rows">
+          <thead id="grid-head"></thead>
+          <tbody id="grid-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ BOTTOM TAB BAR ============ -->
+  <nav class="tabbar" id="tabbar" aria-label="Sheets"></nav>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="version" aria-label="Version">VERSION 0.0.1</footer>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ============ IMPORT MODAL ============ -->
+  <dialog class="modal" id="import-modal">
+    <div class="modal-head">
+      <h3 class="modal-title">IMPORT TSV</h3>
+      <button class="icon-btn" id="btn-modal-close" aria-label="Close import dialog">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" /></svg>
+      </button>
+    </div>
+    <p class="modal-hint">Paste TSV from the export script. Delimiter is auto-detected (tab, comma, pipe, or 3+ spaces). A header line is stripped automatically.</p>
+    <textarea id="import-textarea" class="import-textarea" placeholder="key&#9;en&#9;ch&#9;zh&#10;task.create.title&#9;Create task&#9;建立任務&#9;创建任务" spellcheck="false"></textarea>
+    <p class="import-status" id="import-status" role="status"></p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btn-file-import">IMPORT .TSV FILE</button>
+      <input type="file" id="file-input" accept=".tsv,.txt,text/tab-separated-values,text/plain" hidden>
+      <span class="modal-spacer" aria-hidden="true"></span>
+      <button class="btn btn-ghost" id="btn-import-cancel">CANCEL</button>
+      <button class="btn btn-primary" id="btn-import-confirm">IMPORT</button>
+    </div>
+  </dialog>
+
+  <!-- ============ SHEET KEBAB MENU ============ -->
+  <div class="menu" id="sheet-menu" role="menu" hidden></div>
+
+  <!-- ============ REPO SYNC TERMINAL OVERLAY ============ -->
+  <div class="term-overlay" id="term-overlay" hidden>
+    <div class="term-window" role="dialog" aria-label="Repository sync terminal">
+      <span class="corner tl" aria-hidden="true"></span>
+      <span class="corner tr" aria-hidden="true"></span>
+      <span class="corner bl" aria-hidden="true"></span>
+      <span class="corner br" aria-hidden="true"></span>
+      <div class="term-titlebar">
+        <span class="term-dots" aria-hidden="true"><i class="td td-cyan"></i><i class="td td-magenta"></i><i class="td td-amber"></i></span>
+        <span class="term-title">tt://repo-sync</span>
+        <span class="term-status" id="term-status">RUNNING</span>
+      </div>
+      <div class="term-body" id="term-log" aria-live="polite"></div>
+      <div class="term-progress" aria-hidden="true"><div class="term-bar" id="term-bar"></div></div>
+      <div class="term-footer">
+        <button id="btn-term-dismiss" class="btn btn-ghost" hidden>DISMISS</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
