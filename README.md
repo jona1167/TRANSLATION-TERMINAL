@@ -17,8 +17,9 @@ tables straight into your online sheet.
 [![Made with Bun](https://img.shields.io/badge/Built%20with-Bun-ffd166?logo=bun&logoColor=white)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](./package.json)
+[![Live demo](https://img.shields.io/badge/Try%20it%20online-github.io-22ff88?logo=github)](https://jona1167.github.io/TRANSLATION-TERMINAL/)
 
-**CLI** · **Web app** · **Zero dependencies** · **Fully offline** · **Read-only on your repo**
+**CLI** · **Web app** · **Zero dependencies** · **Fully offline** · **Read-only on your repo** · **[▶ Live demo](https://jona1167.github.io/TRANSLATION-TERMINAL/)**
 
 </div>
 
@@ -33,6 +34,23 @@ tables straight into your online sheet.
   <br>
   <sub>60-second workflow in 4 seconds: load → edit blank cells → search → filter edited → copy.</sub>
 </p>
+
+---
+
+## ▶️ Try it live — no install
+
+**[https://jona1167.github.io/TRANSLATION-TERMINAL/](https://jona1167.github.io/TRANSLATION-TERMINAL/)**
+
+The full web app runs in your browser on GitHub Pages — paste TSV, edit cells, group sheets, and copy tables, all client-side. Click **TRY DEMO DATA** for instant sample data, or **PASTE TSV** with your own rows:
+
+```tsv
+key	en	ch	zh
+task.create.title	Create task	建立任務	创建任务
+task.create.description	Describe what needs to be done	描述需要完成的事項	
+noti.task.overdue	Task is overdue	任務已逾期	
+```
+
+> The online demo is static — the **LOAD FROM REPO** button needs the local server (it reads your repository + Git history). Download the app for that. Everything else works identically online and offline.
 
 ---
 

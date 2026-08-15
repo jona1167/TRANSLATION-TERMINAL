@@ -1118,6 +1118,41 @@ tr.empty-result td {
   }
 }
 
+/* ============ HOSTED DEMO BANNER ============ */
+.hosted-banner {
+  position: fixed;
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 720px;
+  width: calc(100% - 24px);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text, #cbd5e1);
+  background: rgba(5, 7, 13, 0.92);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.18), 0 8px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  backdrop-filter: blur(6px);
+}
+.hosted-banner b { color: var(--cyan); letter-spacing: 0.08em; }
+.hosted-banner .hb-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  animation: led-blink 2.4s ease-in-out infinite;
+}
+.hosted-banner .icon-btn { margin-left: auto; color: var(--dim); }
+.hosted-banner .icon-btn:hover { color: #fff; }
+
 /* ============ HACKER RAIN BACKDROP ============ */
 #hack-rain {
   position: fixed;

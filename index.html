@@ -14,6 +14,16 @@
   <!-- Hacker rain backdrop (canvas, animated) -->
   <canvas id="hack-rain" aria-hidden="true"></canvas>
 
+  <!-- Hosted demo notice (shown on GitHub Pages, hidden locally) -->
+  <div class="hosted-banner" id="hosted-banner" hidden>
+    <span class="hb-dot" aria-hidden="true"></span>
+    <span><b>LIVE DEMO</b> — running fully in your browser. “LOAD FROM REPO” needs the local
+    server; paste TSV below or try <b>TRY DEMO DATA</b>. Download the app for the full workflow.</span>
+    <button class="icon-btn" id="btn-banner-close" aria-label="Dismiss hosted demo notice">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" /></svg>
+    </button>
+  </div>
+
   <!-- ============ TOP BAR ============ -->
   <header class="topbar">
     <div class="brand" id="brand" role="link" tabindex="0" title="Back to main page" aria-label="Back to main page">

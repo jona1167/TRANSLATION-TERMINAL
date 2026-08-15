@@ -112,6 +112,8 @@ const el = {
   termStatus: $('#term-status'),
   btnTermDismiss: $('#btn-term-dismiss'),
   hackRain: $('#hack-rain'),
+  hostedBanner: $('#hosted-banner'),
+  btnBannerClose: $('#btn-banner-close'),
 };
 
 /* ==========================================================================
@@ -726,6 +728,7 @@ function bindEvents() {
   el.btnRepoBrowse.addEventListener('click', browseForRepo);
   el.btnClearData.addEventListener('click', clearAllData);
   el.btnTermDismiss.addEventListener('click', closeTerminal);
+  el.btnBannerClose.addEventListener('click', () => { el.hostedBanner.hidden = true; });
   el.repoInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') loadFromRepo();
   });
@@ -941,7 +944,7 @@ async function loadFromRepo() {
   const sequence = playSyncSequence(path);
 
   try {
-    const res = await fetch('/api/load?repo=' + encodeURIComponent(path));
+    const res = await fetch('api/load?repo=' + encodeURIComponent(path));
     let data;
     try {
       data = await res.json();
@@ -1080,7 +1083,7 @@ async function browseForRepo() {
   btn.textContent = 'PICKING…';
   hideRepoError();
   try {
-    const res = await fetch('/api/pick-folder');
+    const res = await fetch('api/pick-folder');
     let data;
     try {
       data = await res.json();
@@ -1291,6 +1294,10 @@ function startHackRain() {
    12. INIT
    ========================================================================== */
 
+function isHostedDemo() {
+  return location.hostname.endsWith('.github.io');
+}
+
 function init() {
   loadAll();
   el.repoInput.value = state.repoPath;
@@ -1299,6 +1306,9 @@ function init() {
   bindEvents();
   renderAll();
   startHackRain();
+  if (isHostedDemo()) {
+    el.hostedBanner.hidden = false;
+  }
 }
 
 init();
