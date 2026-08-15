@@ -57,6 +57,7 @@ It reads your repository, **never** writes to it — no staging, no committing, 
 | Feature | Description |
 |---------|-------------|
 | 🔍 **Git-aware diffing** | Compares current `en/ch/zh.json` against Git `HEAD` — only truly new or edited keys come out |
+| 📦 **Standalone executables** | Prebuilt binaries for macOS, Linux, and Windows — no Bun install needed |
 | ⚡ **Zero dependencies** | Pure Bun + TypeScript + vanilla JS. No npm install, no framework, no build step |
 | 🖥️ **Terminal CLI** | One command prints a TSV table; `--clipboard` pipes it straight into your paste buffer |
 | 📊 **Sheet auto-grouping** | Rows are bucketed into tabs by key prefix (`workspace.*`, `task.*`, `noti.*`, …) |
@@ -70,6 +71,25 @@ It reads your repository, **never** writes to it — no staging, no committing, 
 
 ## 🚀 Quick start
 
+### Option 0 — Binary download (no Bun needed)
+
+Grab the latest release from [GitHub Releases](https://github.com/jona1167/TRANSLATION-TERMINAL/releases) —
+prebuilt executables for **macOS (arm64 + x64)**, **Linux x64**, and **Windows x64**, plus a ready-to-run
+macOS zip. Unzip and double-click (server) or run from the terminal (CLI):
+
+```sh
+# web app — opens http://localhost:8787 in your browser automatically
+./translation-terminal-darwin-arm64
+
+# CLI
+./translation-terminal-cli-darwin-arm64 /path/to/your-app
+```
+
+> The server binary expects `index.html`, `styles.css`, `app.js`, `favicon.svg` in the same folder —
+> they're included in the release zip.
+
+### Option 1 — From source (Bun)
+
 **Prerequisite:** [Bun](https://bun.sh) ≥ 1.0 on your machine.
 
 ```sh
@@ -77,7 +97,7 @@ git clone git@github.com:jona1167/TRANSLATION-TERMINAL.git
 cd TRANSLATION-TERMINAL
 ```
 
-### Option A — CLI (headless)
+#### CLI (headless)
 
 ```sh
 bun export-new-translations.ts /path/to/your-app
@@ -109,7 +129,6 @@ bun server.ts
 ```
 
 Open <http://localhost:8787>, then:
-
 1. **Load** — click `REPO`, enter your repo path (or `BROWSE…` for a native macOS Finder dialog), and hit `LOAD FROM REPO`. You can also paste TSV directly or import a `.tsv` file. Stuck? Click `TRY DEMO DATA`.
 2. **Edit** — fix the blank `zh`/`ch` cells inline. Each sheet tab groups a key prefix.
 3. **Copy** — select rows (or use `COPY ROW(S) AS TABLE`) or `COPY SHEET`, then paste into the online sheet with `Cmd+V`.
@@ -148,15 +167,30 @@ graph LR
 ```
 translation-terminal/
 ├── export-new-translations.ts  # CLI — diffs bundles against git HEAD → TSV
+├── export-core.ts              # Shared export engine (CLI + server both use it)
 ├── server.ts                   # Zero-dependency Bun server (static + /api/*)
+├── build.ts                    # Cross-compiles standalone executables
 ├── index.html                  # Web UI markup — no framework, no build step
 ├── app.js                      # Vanilla JS spreadsheet engine (localStorage, sheets, search)
 ├── styles.css                  # CRT / hacker-terminal theme
 ├── favicon.svg
 ├── package.json
+├── dist/                       # Compiled executables (created by build.ts, gitignored)
 └── docs/
     └── screenshot.png          # README hero shot
 ```
+
+## 🔨 Building executables
+
+```sh
+bun build.ts              # all platforms: macOS arm64/x64, Linux x64, Windows x64
+bun build:host            # just your current platform
+```
+
+Output lands in `dist/` — the server binary is bundled together with `index.html`,
+`styles.css`, `app.js`, and `favicon.svg` (it looks for them next to itself). The
+CLI binary needs `bun` on the PATH only when it invokes your repo's
+`checkMissingTranslations.ts`.
 
 ## ⚙️ CLI reference
 
