@@ -89,7 +89,9 @@ const el = {
   selectionBar: $('#selection-bar'),
   selectionCount: $('#selection-count'),
   btnCopySelection: $('#btn-copy-selection'),
+  btnRemoveSelection: $('#btn-remove-selection'),
   btnClearSelection: $('#btn-clear-selection'),
+  gridWrap: $('.grid-wrap'),
   emptyState: $('#empty-state'),
   workspace: $('#workspace'),
   brand: $('#brand'),
@@ -643,8 +645,7 @@ function toggleSelect(key, checked) {
   updateSelectAll();
 }
 
-function onSelectAll(e) {
-  const checked = e.target.checked;
+function setAllVisible(checked) {
   const sheet = getActiveSheet();
   if (!sheet) return;
   let rows = sheet.rows;
@@ -658,6 +659,10 @@ function onSelectAll(e) {
   renderSelectionBar();
 }
 
+function onSelectAll(e) {
+  setAllVisible(e.target.checked);
+}
+
 function selectedRows() {
   const out = [];
   for (const sheet of state.sheets) {
@@ -666,6 +671,117 @@ function selectedRows() {
     }
   }
   return out;
+}
+
+/* --- Excel-style drag selection --- */
+
+// Active drag state: { rows, anchor, lastX, lastY, velY }.
+// rows = the currently rendered data rows (respects edited-only + search filters).
+let dragState = null;
+
+function visibleRows() {
+  return [...el.gridBody.querySelectorAll('tr[data-key]')];
+}
+
+// Set the selection to the contiguous range [lo..hi] (inclusive) of the visible rows.
+function applySelection(rows, lo, hi) {
+  if (lo > hi) [lo, hi] = [hi, lo];
+  for (let i = 0; i < rows.length; i++) {
+    const inRange = i >= lo && i <= hi;
+    const key = rows[i].dataset.key;
+    if (inRange) state.selected.add(key);
+    else state.selected.delete(key);
+    rows[i].classList.toggle('selected', inRange);
+    const cb = rows[i].querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = inRange;
+  }
+  renderSelectionBar();
+}
+
+// Mouse down on a row starts an Excel-style drag selection. Clicks on inputs,
+// buttons and checkboxes are left alone so editing still works.
+function startRowDrag(e) {
+  if (e.button !== 0) return;
+  if (e.target.closest('input, button, a')) return;
+  const tr = e.target.closest('tr[data-key]');
+  if (!tr) return;
+  const rows = visibleRows();
+  const anchor = rows.indexOf(tr);
+  if (anchor === -1) return;
+  dragState = { rows, anchor, lastX: e.clientX, lastY: e.clientY, velY: 0 };
+  applySelection(rows, anchor, anchor);
+  el.gridBody.classList.add('dragging');
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', endRowDrag, { once: true });
+  requestAnimationFrame(dragScrollLoop);
+}
+
+function onDragMove(e) {
+  if (!dragState) return;
+  dragState.lastX = e.clientX;
+  dragState.lastY = e.clientY;
+
+  // Extend the range when the pointer enters another row.
+  const tr = e.target.closest('tr[data-key]');
+  if (tr) {
+    const cur = dragState.rows.indexOf(tr);
+    if (cur !== -1) applySelection(dragState.rows, dragState.anchor, cur);
+  }
+
+  // Auto-scroll velocity when the pointer is near the grid's top/bottom edge.
+  const rect = el.gridWrap.getBoundingClientRect();
+  const EDGE = 36;
+  if (e.clientY < rect.top + EDGE) {
+    dragState.velY = -Math.min(20, (rect.top + EDGE - e.clientY) * 0.5);
+  } else if (e.clientY > rect.bottom - EDGE) {
+    dragState.velY = Math.min(20, (e.clientY - (rect.bottom - EDGE)) * 0.5);
+  } else {
+    dragState.velY = 0;
+  }
+}
+
+function dragScrollLoop() {
+  if (!dragState) return;
+  if (dragState.velY) {
+    el.gridWrap.scrollTop += dragState.velY;
+    // Pick the row now under the fixed pointer; fall back to the extreme row
+    // when the pointer sits on the header or in empty space (Excel behaviour).
+    const hit = document.elementFromPoint(dragState.lastX, dragState.lastY);
+    const tr = hit && hit.closest('tr[data-key]');
+    if (tr) {
+      const cur = dragState.rows.indexOf(tr);
+      if (cur !== -1) applySelection(dragState.rows, dragState.anchor, cur);
+    } else {
+      applySelection(dragState.rows, dragState.anchor, dragState.velY > 0 ? dragState.rows.length - 1 : 0);
+    }
+  }
+  requestAnimationFrame(dragScrollLoop);
+}
+
+function endRowDrag() {
+  if (!dragState) return;
+  dragState = null;
+  el.gridBody.classList.remove('dragging');
+  document.removeEventListener('mousemove', onDragMove);
+  renderSelectionBar();
+  updateSelectAll();
+}
+
+function removeSelectedRows() {
+  const keys = [...state.selected];
+  if (!keys.length) return;
+  const n = keys.length;
+  const confirmed = confirm(`Remove ${n} row${n === 1 ? '' : 's'}? This deletes them from the loaded data.`);
+  if (!confirmed) return;
+  const gone = new Set(keys);
+  state.rows = state.rows.filter((r) => !gone.has(r.key));
+  for (const key of keys) delete state.edits[key];
+  state.selected.clear();
+  saveData();
+  saveEdits();
+  rebuildSheets();
+  renderAll();
+  toast(`Removed ${n} row${n === 1 ? '' : 's'}`);
 }
 
 /* ==========================================================================
@@ -738,11 +854,15 @@ function bindEvents() {
 
   // --- selection bar ---
   el.btnCopySelection.addEventListener('click', () => copyRows(selectedRows()));
+  el.btnRemoveSelection.addEventListener('click', removeSelectedRows);
   el.btnClearSelection.addEventListener('click', () => {
     state.selected.clear();
     renderGrid();
     renderSelectionBar();
   });
+
+  // --- grid: Excel-style drag selection ---
+  el.gridBody.addEventListener('mousedown', startRowDrag);
 
   // --- hero actions ---
   document.querySelectorAll('[data-action]').forEach((btn) => {
@@ -799,6 +919,14 @@ function onGlobalKeydown(e) {
       const sheet = getActiveSheet();
       if (sheet) copyRows(sheet.rows);
     }
+    return;
+  }
+
+  // Cmd/Ctrl+A -> select all visible rows in the active sheet.
+  if (mod && (e.key === 'a' || e.key === 'A') && !isTypingTarget(e.target)) {
+    if (!getActiveSheet()) return;
+    e.preventDefault();
+    setAllVisible(true);
     return;
   }
 

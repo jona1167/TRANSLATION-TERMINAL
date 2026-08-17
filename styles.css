@@ -272,6 +272,17 @@ input, textarea { font-family: inherit; }
 
 .btn-ghost { background: transparent; }
 
+.btn-danger {
+  border-color: rgba(255, 80, 90, 0.45);
+  color: #ff8a92;
+}
+
+.btn-danger:hover {
+  border-color: rgba(255, 80, 90, 0.85);
+  color: #ffb3b8;
+  box-shadow: 0 0 14px rgba(255, 80, 90, 0.3);
+}
+
 .btn-toggle.active {
   border-color: rgba(255, 176, 0, 0.55);
   color: var(--amber);
@@ -586,6 +597,9 @@ tbody td {
 
 tbody tr:nth-child(even) td { background: #0d1526; }
 tbody tr:hover td { background: #0f1a2e; }
+tbody tr { user-select: none; }
+tbody tr input { user-select: text; }
+#grid-body.dragging tr { cursor: grabbing; }
 tbody tr.selected td { background: #10283a; }
 tbody tr.selected td.col-check, tbody tr.selected td.col-key { background: #12303f; }
 tbody tr.selected { box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.35); }
@@ -1118,6 +1132,20 @@ tr.empty-result td {
   }
 }
 
+/* ============ HACKER RAIN BACKDROP ============ */
+#hack-rain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.42;
+  filter: drop-shadow(0 0 3px rgba(0, 240, 255, 0.3));
+}
+body.has-data #hack-rain {
+  opacity: 0.16;
+  transition: opacity 400ms ease;
+}
+
 /* ============ HOSTED DEMO BANNER ============ */
 .hosted-banner {
   position: fixed;
@@ -1152,17 +1180,3 @@ tr.empty-result td {
 }
 .hosted-banner .icon-btn { margin-left: auto; color: var(--dim); }
 .hosted-banner .icon-btn:hover { color: #fff; }
-
-/* ============ HACKER RAIN BACKDROP ============ */
-#hack-rain {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.42;
-  filter: drop-shadow(0 0 3px rgba(0, 240, 255, 0.3));
-}
-body.has-data #hack-rain {
-  opacity: 0.16;
-  transition: opacity 400ms ease;
-}

@@ -82,6 +82,8 @@ It reads your repository, **never** writes to it — no staging, no committing, 
 | ✏️ **Inline editing** | Click a cell, type, done — edits persist in `localStorage` across reloads |
 | 🔎 **Search + filters** | Instant full-table search (`/` or `⌘/Ctrl+F`), plus an "EDITED ONLY" toggle |
 | 📋 **Copy-ready TSV** | Per row, per selection, or per whole sheet — paste directly into the online sheet with `Cmd+V` |
+| 🖱️ **Excel-style drag select** | Drag across rows to select a range, just like a spreadsheet (v2) |
+| 🗑️ **Remove rows** | Delete stale keys from a sheet — confirm with one click (v2) |
 | 🗂️ **Import anything** | Paste TSV, import a `.tsv` file, or load straight from your repo path |
 | 🔒 **Read-only by design** | The tool only reads the target repository. Your codebase is never modified |
 | 🛡️ **Path-traversal guarded** | The local server validates every static path and repo-path input |
