@@ -24,13 +24,13 @@ tables straight into your online sheet.
 </div>
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Translation Terminal spreadsheet editor with sheets, search, and inline editing" width="840" />
+  <img src="https://jona1167.github.io/TRANSLATION-TERMINAL/docs/screenshot.png" alt="Translation Terminal spreadsheet editor with sheets, search, and inline editing" width="840" />
   <br>
   <sub>The workbench with demo data loaded — sheets grouped by key prefix, blank zh cells ready to fill.</sub>
 </p>
 
 <p align="center">
-  <img src="docs/demo.gif" alt="Animated demo: load demo data, edit a missing zh translation, search, filter edited rows, and select rows" width="800" />
+  <img src="https://jona1167.github.io/TRANSLATION-TERMINAL/docs/demo.gif" alt="Animated demo: load demo data, edit a missing zh translation, search, filter edited rows, and select rows" width="800" />
   <br>
   <sub>60-second workflow in 4 seconds: load → edit blank cells → search → filter edited → copy.</sub>
 </p>
